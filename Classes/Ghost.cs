@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Making_More_Classes
+namespace Classes
 {
     public class Ghost
     {
@@ -19,9 +19,9 @@ namespace Making_More_Classes
         private float _animationSpeed;
         private float _seconds;
         private float _opacity;
+        private float _speedMultiplier;
 
-
-        public Ghost(List<Texture2D> textures, Rectangle location)
+        public Ghost(List<Texture2D> textures, Rectangle location, float speedMultiplier = 1f)
         {
             _textures = textures;
             _textureIndex = 0;
@@ -31,29 +31,33 @@ namespace Making_More_Classes
             _opacity = 1f;
             _animationSpeed = 0.2f;
             _seconds = 0;
+            _speedMultiplier = speedMultiplier;
         }
-
+        public Rectangle Rect
+        {
+            get { return _location; }
+        }
         public void Update(GameTime gameTime, MouseState mouseState)
         {
 
             // Calculates horizontal speed and direction sprite should face
             _speed = Vector2.Zero;
-            if (mouseState.X < _location.X)
+            if (mouseState.X < _location.X + _location.Width / 2)
             {
                 _direction = SpriteEffects.FlipHorizontally;
-                _speed.X = -1f;
+                _speed.X = -_speedMultiplier;
             }
-            else if (mouseState.X > _location.X)
+            else if (mouseState.X > _location.X + _location.Width)
             {
                 _direction = SpriteEffects.None;
-                _speed.X = 1f;
+                _speed.X = _speedMultiplier;
             }
-
+           
             // Calculates vertical speed
-            if (mouseState.Y < _location.Y)
-                _speed.Y = -1f;
-            else if (mouseState.Y > _location.Y)
-                _speed.Y = 1f;
+            if (mouseState.Y < _location.Y + _location.Height / 2)
+                _speed.Y = -_speedMultiplier;
+            else if (mouseState.Y > _location.Y + _location.Height)
+                _speed.Y = _speedMultiplier;
 
             // Only move if the mouse button is down
             if (mouseState.LeftButton == ButtonState.Released)
@@ -63,16 +67,27 @@ namespace Making_More_Classes
                 _seconds = 0f;
                 _opacity = 0.3f;
             }
-            else if (_speed != Vector2.Zero) // Ghost is moving
+            else
             {
                 _opacity = 1f;
-                _seconds += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                if (_seconds > _animationSpeed)
+
+                if (_speed != Vector2.Zero)
                 {
-                    _seconds = 0;
-                    _textureIndex++;
-                    if (_textureIndex >= _textures.Count)
-                        _textureIndex = 1;
+                    _seconds += (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+                    if (_seconds >= _animationSpeed)
+                    {
+                        _seconds = 0f;
+                        _textureIndex++;
+
+                        if (_textureIndex >= _textures.Count)
+                            _textureIndex = 1;
+                    }
+                }
+                else
+                {
+                    _textureIndex = 0;
+                    _seconds = 0f;
                 }
             }
 
@@ -80,10 +95,10 @@ namespace Making_More_Classes
 
         }
 
-        public Rectangle Rect
-        {
-            get { return _location; }
-        }
+        //public Rectangle Rect
+        //{
+        //    get { return _location; }
+        //}
 
         public bool Contains(Point player)
         {
@@ -97,7 +112,7 @@ namespace Making_More_Classes
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(_textures[_textureIndex], _location, null, Color.White * _opacity, 0f, Vector2.Zero, _direction, 1);
+            spriteBatch.Draw(_textures[_textureIndex], _location, null, Color.White * _opacity, 0f, Vector2.Zero, _direction, 1f);
         }
 
     }
